@@ -39,7 +39,7 @@
       ry="4"
     ></rect>
     <text
-      class="textArea"
+      class="text"
       fill="#4c4c4c"
       font-size="12"
       text-align="center"
@@ -179,11 +179,9 @@ export default {
               targetDom.attr('sourceY'),
             ]
             _this.$emit('mouseClickTarget', { id, originX, originY })
-          }
+          },
+          false
         )
-      selectAll('.textArea').on('click', function() {
-        console.log('textdbclick')
-      })
       selectAll('.linkContent').on('click', function() {
         event.stopPropagation()
       },false)

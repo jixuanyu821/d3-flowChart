@@ -42,6 +42,7 @@
       class="textArea"
       fill="#4c4c4c"
       font-size="12"
+      :node-id="node.id"
       text-align="center"
       dominant-baseline="middle"
       text-anchor="middle"
@@ -55,9 +56,12 @@
         <path
           fill="none"
           stroke="#333"
-          stroke-width="2"
+          stroke-width="4"
+          class="linkPath"
           v-for="child in node.link"
           :d="getLinks(child)"
+          :node-id="node.id"
+          :target-id="child.targetId"
           :key="child.id"
         ></path>
         <circle
@@ -87,6 +91,22 @@
           :cx="child.target.x"
           :cy="child.target.y"
         ></circle>
+        <rect
+          v-for="(child, index) in node.link"
+          :key="index"
+          :x="getLinkBorderX(child)"
+          :y="getLinkBorderY(child)"
+          :width="getLinkBorderW(child)"
+          :height="getLinkBorderH(child)"
+          fill="none"
+          stroke="#999"
+          stroke-width="#999"
+          stroke-dasharray="20,10,5,5,5,10"
+          class="linkborder"
+          v-show="child.showBorder"
+          rx="4"
+          ry="4"
+        ></rect>
       </g>
     </template>
   </g>
@@ -119,6 +139,18 @@ export default {
     this.bindCricleDrag() // 绑定
   },
   methods: {
+    getLinkBorderX(child){
+      return Math.min(child.source.x - 4, child.target.x  - 4)
+    },
+    getLinkBorderY(child){
+      return Math.min(child.source.y - 4, child.target.y - 4)
+    },
+    getLinkBorderW(child){
+      return Math.abs(child.source.x - child.target.x ) + 8
+    },
+    getLinkBorderH(child){
+      return Math.abs(child.source.y - child.target.y ) + 8
+    },
     reload() {
       this.bindMouseOver() // 绑定鼠标移入事件
       this.bindDrag() // 绑定节点的拖拽事件
@@ -178,10 +210,25 @@ export default {
               targetDom.attr('sourceX'),
               targetDom.attr('sourceY'),
             ]
-            _this.$emit('mouseClickTarget', { id, originX, originY })
-          }
+            _this.$emit('mouseClickNode', { id, originX, originY })
+          },
+          false
         )
+        selectAll('.linkPath').on('click',function(){
+          event.stopPropagation()
+          console.log('linkPathClick')
+          const targetDom = select(this)
+          let [id, targetId] = [
+              targetDom.attr('node-id'),
+              targetDom.attr('target-id')
+            ]
+          _this.$emit('mouseClickTarget', { id, targetId })
+        })
       selectAll('.textArea').on('click', function() {
+        event.stopPropagation()
+        const targetDom = select(this)
+        let id = targetDom.attr('node-id')
+        _this.$emit('mouseClickText', id )
         console.log('textdbclick')
       })
       selectAll('.linkContent').on('click', function() {
