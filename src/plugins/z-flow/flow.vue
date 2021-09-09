@@ -37,7 +37,7 @@
           markerHeight="10"
           orient="auto"
         >
-          <path d="M 0 0 L 10 5 L 0 10 z" stroke="#ddd" fill="#ddd" />
+          <path d="M 0 0 L 10 5 L 0 10 z" stroke="#666" fill="#666" />
         </marker>
       </defs>
       <template v-if="showLinkLine">
@@ -46,7 +46,7 @@
             `${linkLine.source.x},${linkLine.source.y} ${linkLine.target.x},${linkLine.target.y}`
           "
           fill="none"
-          stroke="#ddd"
+          stroke="#666"
           stroke-dasharray="20,10,5,5,5,10"
           stroke-width="2"
           marker-end="url(#Triangle)"
@@ -65,12 +65,12 @@
           <img
             @click="linkTarget(node)"
             class="linkBtn"
-            src="../assets/Line.svg"
+            src="~@/assets/Line.svg"
           />
           <img
             @click="deleteNode(node)"
             class="deleteBtn"
-            src="../assets/delete.svg"
+            src="~@/assets/delete.svg"
           />
         </div>
       </template>
@@ -78,12 +78,13 @@
   </div>
 </template>
 <script>
-import nodeG from './nodeG-2.vue'
+import nodeG from './nodeG.vue'
 import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom'
 import { select, event } from 'd3-selection'
 const [width, height, border] = [168, 60, 20]
 let svg, outG
 export default {
+  name: 'ZFlow',
   components: {
     nodeG,
   },
@@ -617,9 +618,12 @@ export default {
   background-color: #fff;
   border: 1px solid #e4e4e4;
 }
+.opreate_node{
+  position: absolute;
+}
 .linkBtn,
 .deleteBtn {
-  background: #fff url('../assets/Line.svg') 100% 100%;
+  /* background: #fff url('../assets/Line.svg') 100% 100%; */
   width: 28px;
   height: 28px;
   cursor: pointer;

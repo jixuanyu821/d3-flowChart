@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import ZFlow from './plugins'
 
-createApp(App).mount('#app')
+createApp(App).use(ZFlow).mount('#app')

@@ -1,7 +1,11 @@
 {
-  "name": "d3demo",
+  "name": "zrar-flow",
   "version": "0.1.0",
-  "private": true,
+  "author": "jixuanyu <596041986@qq.com>",
+  "keywords": [
+    "vue",
+    "flow"
+  ],
   "scripts": {
     "dev": "vue-cli-service serve",
     "build": "vue-cli-service build",

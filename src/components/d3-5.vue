@@ -1,5 +1,11 @@
 <!--
  * @Author: jixuanyu
+ * @Date: 2021-07-13 09:20:27
+ * @LastEditors: jixuanyu
+ * @Description: file content
+-->
+<!--
+ * @Author: jixuanyu
  * @Date: 2021-07-06 16:39:40
  * @LastEditors: jixuanyu
  * @Description: file content
@@ -22,36 +28,39 @@
             @circleChange="circleChange"
             @targetCircleChange="targetCircleChange"
             @mouseClickTarget="mouseClickTarget"
+            @mouseClickText="mouseClickText"
             v-for="node in treeData"
             :key="node.id"
           ></nodeG>
         </template>
+        <defs>
+          <marker
+            id="Triangle"
+            viewBox="0 0 20 20"
+            refX="0"
+            refY="5"
+            markerWidth="10"
+            markerHeight="10"
+            orient="auto"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" stroke="#666" fill="#666" />
+          </marker>
+        </defs>
+        <template v-if="showLinkLine">
+          <polyline
+            :points="
+              `${linkLine.source.x},${linkLine.source.y} ${linkLine.target.x -
+                transform.x -
+                10},${linkLine.target.y - transform.y - 5}`
+            "
+            fill="none"
+            stroke="#666"
+            stroke-dasharray="20,10,5,5,5,10"
+            stroke-width="2"
+            marker-end="url(#Triangle)"
+          />
+        </template>
       </g>
-      <defs>
-        <marker
-          id="Triangle"
-          viewBox="0 0 20 20"
-          refX="0"
-          refY="5"
-          markerWidth="10"
-          markerHeight="10"
-          orient="auto"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" stroke="#ddd" fill="#ddd" />
-        </marker>
-      </defs>
-      <template v-if="showLinkLine">
-        <polyline
-          :points="
-            `${linkLine.source.x},${linkLine.source.y} ${linkLine.target.x},${linkLine.target.y}`
-          "
-          fill="none"
-          stroke="#ddd"
-          stroke-dasharray="20,10,5,5,5,10"
-          stroke-width="2"
-          marker-end="url(#Triangle)"
-        />
-      </template>
     </svg>
     <div class="outerContanier">
       <template v-for="node in treeData" :key="node.id">
@@ -59,26 +68,54 @@
           class="opreate_node"
           v-if="node.showOperate"
           :style="
-            `left: ${node.source.x + width + border / 2}px; top: ${node.source.y - border / 2}px;`
+            `left: ${node.source.x + width + border / 2}px; top: ${node.source
+              .y -
+              border / 2}px;`
           "
         >
-          <img
-            @click="linkTarget(node)"
-            class="linkBtn"
-            src="../assets/Line.svg"
-          />
-          <img
+          <i class="iconfont icon-Line linkBtn" @click="linkTarget(node)"></i>
+          <i class="iconfont icon-edit editBtn" @click="editNode(node)"></i>
+          <i
+            class="iconfont icon-delete deleteBtn"
             @click="deleteNode(node)"
-            class="deleteBtn"
-            src="../assets/delete.svg"
-          />
+          ></i>
         </div>
+        <div
+          class="opreate_text"
+          :style="`left: ${node.source.x}px;top: ${node.source.y}px;`"
+          v-show="node.showEdit"
+        >
+          <input
+            type="text"
+            :node-edit="node.id"
+            maxlength="15"
+            v-model="node.name"
+          />
+          <i class="iconfont icon-done" @click="confirmEdit(node)"></i>
+          <!-- <img src="~@/assets/done.svg" alt="" @click="confirmEdit(node)"> -->
+        </div>
+        <template v-if="node.link && node.link.length > 0">
+          <div
+            class="opreate_line"
+            v-for="(link, index) in node.link"
+            :key="index"
+            v-show="link.showBorder"
+            :style="
+              `left: ${getLinkBorderX(link)}px; top: ${getLinkBorderY(link)}px;`
+            "
+          >
+            <i
+              class="iconfont icon-delete deleteBtn"
+              @click="deleteLineNode(node,link)"
+            ></i>
+          </div>
+        </template>
       </template>
     </div>
   </div>
 </template>
 <script>
-import nodeG from './nodeG-2.vue'
+import nodeG from './nodeG-3.vue'
 import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom'
 import { select, event } from 'd3-selection'
 const [width, height, border] = [168, 60, 20]
@@ -95,6 +132,10 @@ export default {
       border,
       showFlag: true,
       showLinkLine: false,
+      transform: {
+        x: 0,
+        y: 0,
+      },
       linkLine: {
         id: 0,
         source: {
@@ -111,7 +152,8 @@ export default {
           name: '节点1',
           id: 1,
           showOperate: false,
-          borderColor:'#2080f7',
+          showEdit: false,
+          borderColor: '#2080f7',
           source: {
             x: 100,
             y: 50,
@@ -119,6 +161,7 @@ export default {
           link: [
             {
               targetId: 2,
+              showBorder: false,
               source: {
                 x: 272,
                 y: 80,
@@ -130,6 +173,7 @@ export default {
             },
             {
               targetId: 3,
+              showBorder: false,
               source: {
                 x: 272,
                 y: 80,
@@ -145,7 +189,8 @@ export default {
           name: '节点2',
           id: 2,
           showOperate: false,
-          borderColor:'#DDD',
+          showEdit: false,
+          borderColor: '#DDD',
           source: {
             x: 400,
             y: 10,
@@ -153,6 +198,7 @@ export default {
           link: [
             {
               targetId: 4,
+              showBorder: false,
               source: {
                 x: 572,
                 y: 40,
@@ -164,6 +210,7 @@ export default {
             },
             {
               targetId: 5,
+              showBorder: false,
               source: {
                 x: 572,
                 y: 40,
@@ -178,7 +225,8 @@ export default {
         {
           name: '节点3',
           showOperate: false,
-          borderColor:'#DDD',
+          showEdit: false,
+          borderColor: '#DDD',
           id: 3,
           source: {
             x: 400,
@@ -188,7 +236,8 @@ export default {
         {
           name: '节点4',
           showOperate: false,
-          borderColor:'#DDD',
+          showEdit: false,
+          borderColor: '#DDD',
           id: 4,
           source: {
             x: 600,
@@ -198,7 +247,8 @@ export default {
         {
           name: '节点5',
           showOperate: false,
-          borderColor:'#DDD',
+          showEdit: false,
+          borderColor: '#DDD',
           id: 5,
           source: {
             x: 600,
@@ -213,47 +263,84 @@ export default {
     this.initSvg()
   },
   methods: {
-    newNode(source={
-          x: 700,
-          y: 200,
-        },borderColor="#999") {
+    getLinkBorderX(child) {
+      let left = Math.min(child.source.x - 4, child.target.x - 4)
+      let width = Math.abs(child.source.x - child.target.x)
+      return left + width + 8
+    },
+    getLinkBorderY(child) {
+      return Math.min(child.source.y - 4, child.target.y - 4)
+    },
+    newNode(
+      source = {
+        x: 700,
+        y: 200,
+      },
+      borderColor = '#999'
+    ) {
       this.treeData.push({
         name: '节点' + this.index,
         id: this.index,
         source,
-        borderColor
+        borderColor,
       })
       this.index++
+    },
+    editNode(node) {
+      const index = this.treeData.findIndex(
+        (item) => String(item.id) === String(node.id)
+      )
+      this.treeData[index].showEdit = true
+    },
+    confirmEdit(node) {
+      const index = this.treeData.findIndex(
+        (item) => String(item.id) === String(node.id)
+      )
+      this.treeData[index].showEdit = false
     },
     /**
      * @description: 删除节点
      * @param {*} node 节点
      */
-
     deleteNode(node) {
       const index = this.treeData.findIndex(
         (item) => String(item.id) === String(node.id)
       )
       this.treeData.splice(index, 1)
-      this.treeData.forEach(ele =>{
-        const linkIndex = ele.link?.findIndex(item => String(item.targetId) === String(node.id))
-        if(linkIndex > -1) ele.link.splice(linkIndex, 1)
+      this.treeData.forEach((ele) => {
+        const linkIndex = ele.link?.findIndex(
+          (item) => String(item.targetId) === String(node.id)
+        )
+        if (linkIndex > -1) ele.link.splice(linkIndex, 1)
       })
+    },
+    /**
+     * @description: 删除线节点
+     * @param {*} link
+     */    
+    deleteLineNode(node,link){
+      let [nodeId,linkTargetId] = [node.id, link.target.id]
+      let nodeIdx = this.treeData.findIndex(item => String(item.id) === String(nodeId))
+      let linkIdx = this.treeData[nodeIdx].link.findIndex(item => String(item.targetId) === String(linkTargetId))
+      this.treeData[nodeIdx].link.splice(linkIdx,1)
     },
     // 初始化svg 添加整体的缩放和拖拽
     initSvg() {
+      let _this = this
       outG = svg.select('.outG')
       const outerContanier = select('.outerContanier')
       outG.attr('transform', zoomIdentity)
       outerContanier.attr('style', 'transform:' + zoomIdentity)
       const zoom = d3Zoom()
-        .scaleExtent([0.5, 1.5])
+        .scaleExtent([1, 1])
         .on('zoom', function() {
           outG.attr('transform', event.transform)
           outerContanier.attr(
             'style',
-            `transform: translate(${event.transform.x}px,${event.transform.y}px) scale(${event.transform.k})`
+            `transform: translate(${event.transform.x}px,${event.transform.y}px)`
           )
+          _this.transform.x = event.transform.x
+          _this.transform.y = event.transform.y
         })
       select('#svg')
         .call(zoom)
@@ -265,7 +352,6 @@ export default {
      * @param {*} source // 拖拽后节点的点位
      * @param {*} d {dx,dy} 鼠标拖拽过程中的偏移量
      */
-
     nodeChange({ id, source, d }) {
       this.treeData = this.setTreeData(this.treeData, id, source, d.dx, d.dy)
     },
@@ -275,7 +361,6 @@ export default {
      * @param {*} index // 当前拖拽的节点索引
      * @param {*} d 鼠标当前位置
      */
-
     circleChange({ id, index, d }) {
       this.treeData = this.setCircleData(this.treeData, id, index, d.x, d.y)
     },
@@ -321,7 +406,6 @@ export default {
      * @param {*} dx 偏移量
      * @param {*} dy 偏移量
      */
-
     settargetLink(arr, targetId, dx, dy) {
       for (let i = 0; i < arr.length; i++) {
         let ele = arr[i]
@@ -362,7 +446,6 @@ export default {
      * @param {*} y 鼠标点位y
      * @return {*}  处理后的数据
      */
-
     setCircleData(arr, targetId, targetIndex, x, y) {
       targetIndex = Number(targetIndex)
       for (let i = 0; i < arr.length; i++) {
@@ -515,12 +598,35 @@ export default {
       return { sourceX, sourceY }
     },
     /**
-     * @description:
-     * @param {*} id
-     * @param {*} x
-     * @param {*} y
+     * @description: 点击连线触发的方法 用于显示连线的操作框
+     * @param {*} id  触发的节点Id
+     * @param {*} targetId  连线目标id
      */
-    mouseClickTarget({ id, originX, originY }) {
+    mouseClickTarget({ id, targetId }) {
+      for (let i = 0; i < this.treeData.length; i++) {
+        const ele = this.treeData[i]
+        if(ele.link && ele.link.length>0){
+          for (let j = 0; j < ele.link.length; j++) {
+            const element = ele.link[j]
+            element.showBorder = false
+            if (
+              String(element.targetId) === String(targetId) &&
+              String(ele.id) === String(id)
+            ) {
+              element.showBorder = true
+            }
+          }
+        }
+      }
+      console.log(this.treeData)
+    },
+    /**
+     * @description: 
+     * @param {*} id
+     * @param {*} originX
+     * @param {*} originY
+     */    
+    mouseClickNode({ id, originX, originY }) {
       this.treeData.forEach((element) => {
         element.showOperate = false
       })
@@ -561,10 +667,25 @@ export default {
       this.$refs.nodeG.reload()
     },
     /**
-     * @description:
+     * @description: 点击节点文本 显示编辑弹窗
+     * @param {*} id
+     */
+    mouseClickText(id) {
+      console.log(id)
+      this.treeData.forEach((ele) => {
+        ele.showEdit = false
+        if (String(ele.id) === String(id)) {
+          ele.showEdit = true
+        }
+      })
+      this.$nextTick(() => {
+        document.querySelector(`[node-edit='${id}']`).focus()
+      })
+    },
+    /**
+     * @description: 点击节点连线按钮方法
      * @param {node} 要连线的节点
      */
-
     linkTarget(node) {
       this.showLinkLine = true
       let [sourceX, sourceY] = [node.source.x, node.source.y]
@@ -575,12 +696,16 @@ export default {
       }
       this.linkTargetStart()
     },
+    /**
+     * @description: 连线开始
+     */
+
     linkTargetStart() {
       let _this = this
       svg.on('mousemove', function() {
         let { x, y } = event
-        let pageX = document.querySelector('.main').offsetLeft
-        let pageY = document.querySelector('.main').offsetTop
+        let pageX = document.querySelector('.svgContent')?.offsetLeft
+        let pageY = document.querySelector('.svgContent')?.offsetTop
         _this.linkLine.target = { x: Number(x) - pageX, y: Number(y) - pageY }
       })
     },
@@ -588,7 +713,13 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+$width: 168px;
+$height: 60px;
+@import url('~@/assets/icon/iconfont.css');
+* {
+  box-sizing: border-box;
+}
 .svgContent {
   width: 100%;
   height: 100%;
@@ -617,11 +748,44 @@ export default {
   background-color: #fff;
   border: 1px solid #e4e4e4;
 }
+.opreate_text {
+  position: absolute;
+  width: $width;
+  transform: translateY(14px); // (60 -32) / 2
+  input {
+    width: 100%;
+    height: 32px;
+    border: none;
+    text-align: center;
+    &:focus {
+      outline: none;
+      border: 1px solid #2080f7;
+    }
+  }
+  .icon-done {
+    position: absolute;
+    right: 0px;
+    top: 0;
+    width: 32px;
+    font-size: 20px;
+    height: 32px;
+    line-height: 32px;
+    cursor: pointer;
+  }
+}
+.opreate_line {
+  position: absolute;
+  background-color: #fff;
+}
 .linkBtn,
+.editBtn,
 .deleteBtn {
-  background: #fff url('../assets/Line.svg') 100% 100%;
-  width: 28px;
-  height: 28px;
+  background: #fff url('~@/assets/Line.svg') 100% 100%;
+  width: 24px;
+  display: block;
+  height: 24px;
+  font-size: 20px;
   cursor: pointer;
+  font-weight: bold;
 }
 </style>

@@ -1,11 +1,12 @@
 <template>
   <div>
-    <d3/>
+    <d3 style="height:100vh;"></d3>
+    <!-- <z-flow style="height:100vh;"/> -->
   </div>
 </template>
 
 <script>
-import D3 from './components/d3-4.vue'
+import D3 from './components/d3-5.vue'
 
 export default {
   name: 'App',
@@ -22,6 +23,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /* margin-top: 60px; */
 }
 </style>
