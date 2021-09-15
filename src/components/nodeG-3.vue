@@ -30,8 +30,8 @@
       :width="width + border"
       :height="height + border"
       fill="none"
-      stroke="#999"
-      stroke-width="#999"
+      :stroke="node.borderColor"
+      stroke-width="1"
       stroke-dasharray="20,10,5,5,5,10"
       class="rectborder"
       style="display:none"
@@ -42,7 +42,6 @@
       class="textArea"
       fill="#4c4c4c"
       font-size="12"
-      :node-id="node.id"
       text-align="center"
       dominant-baseline="middle"
       text-anchor="middle"
@@ -139,17 +138,17 @@ export default {
     this.bindCricleDrag() // 绑定
   },
   methods: {
-    getLinkBorderX(child){
-      return Math.min(child.source.x - 4, child.target.x  - 4)
+    getLinkBorderX(child) {
+      return Math.min(child.source.x, child.target.x)
     },
-    getLinkBorderY(child){
-      return Math.min(child.source.y - 4, child.target.y - 4)
+    getLinkBorderY(child) {
+      return Math.min(child.source.y, child.target.y)
     },
-    getLinkBorderW(child){
-      return Math.abs(child.source.x - child.target.x ) + 8
+    getLinkBorderW(child) {
+      return Math.abs(child.source.x - child.target.x)
     },
-    getLinkBorderH(child){
-      return Math.abs(child.source.y - child.target.y ) + 8
+    getLinkBorderH(child) {
+      return Math.abs(child.source.y - child.target.y)
     },
     reload() {
       this.bindMouseOver() // 绑定鼠标移入事件
@@ -195,45 +194,41 @@ export default {
         .on('mouseout', function() {
           event.stopPropagation()
           const targetDom = select(this)
-          targetDom.select('.rect').attr('stroke', '#999')
+          targetDom.select('.rect').attr('stroke', _this.node.borderColor)
         })
-        .on(
-          'click',
-          function() {
-            event.stopPropagation()
-            selectAll('.rectborder').attr('style', 'display:none')
-            const targetDom = select(this)
-            targetDom.select('.rectborder').attr('style', '')
-            targetDom.select('.rect').attr('style', '')
-            let [id, originX, originY] = [
-              targetDom.attr('node-id'),
-              targetDom.attr('sourceX'),
-              targetDom.attr('sourceY'),
-            ]
-            _this.$emit('mouseClickNode', { id, originX, originY })
-          },
-          false
-        )
-        selectAll('.linkPath').on('click',function(){
+        .on('click', function() {
           event.stopPropagation()
+          selectAll('.rectborder').attr('style', 'display:none')
+          const targetDom = select(this)
+          targetDom.select('.rectborder').attr('style', '')
+          targetDom.select('.rect').attr('style', '')
+          let [id, originX, originY] = [
+            targetDom.attr('node-id'),
+            targetDom.attr('sourceX'),
+            targetDom.attr('sourceY'),
+          ]
+          _this.$emit('mouseClickTarget', { id, originX, originY })
+        })
+        .selectAll('.linkPath')
+        .on('click', function() {
           console.log('linkPathClick')
           const targetDom = select(this)
           let [id, targetId] = [
-              targetDom.attr('node-id'),
-              targetDom.attr('target-id')
-            ]
+            targetDom.attr('node-id'),
+            targetDom.attr('target-id'),
+          ]
           _this.$emit('mouseClickTarget', { id, targetId })
         })
       selectAll('.textArea').on('click', function() {
-        event.stopPropagation()
-        const targetDom = select(this)
-        let id = targetDom.attr('node-id')
-        _this.$emit('mouseClickText', id )
         console.log('textdbclick')
       })
-      selectAll('.linkContent').on('click', function() {
-        event.stopPropagation()
-      },false)
+      selectAll('.linkContent').on(
+        'click',
+        function() {
+          event.stopPropagation()
+        },
+        false
+      )
     },
     bindDrag() {
       let _this = this
